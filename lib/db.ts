@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
-const dbPromise = SQLite.openDatabaseAsync('freefeels.db');
+const dbPromise = SQLite.openDatabaseAsync('how-are-you-feeling.db');
 let initialized = false;
 
 type EntryRow = {
