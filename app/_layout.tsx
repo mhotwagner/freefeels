@@ -3,8 +3,11 @@ import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { initDb } from '@/lib/db';
-import { configureNotificationsAsync } from '@/lib/notifications';
+import { initDb, listReminders } from '@/lib/db';
+import {
+  configureNotificationsAsync,
+  reconcileReminderNotifications,
+} from '@/lib/notifications';
 
 function HeaderLinks() {
   return (
@@ -27,17 +30,21 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    void initDb();
-    void configureNotificationsAsync();
+    // Bring the OS notification schedule back in sync with the saved reminders
+    // on every launch — the two can drift across reinstalls or if the OS clears
+    // pending notifications.
+    void (async () => {
+      await initDb();
+      await configureNotificationsAsync();
+      const reminders = await listReminders();
+      await reconcileReminderNotifications(reminders);
+    })();
 
+    // Tapping the reminder while the app is running/backgrounded jumps to the
+    // check-in screen. Cold starts already land on "/" (the initial route), so
+    // no extra launch-redirect is needed.
     const sub = Notifications.addNotificationResponseReceivedListener(() => {
       router.replace('/');
-    });
-
-    void Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response) {
-        router.replace('/');
-      }
     });
 
     return () => {

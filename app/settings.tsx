@@ -79,14 +79,14 @@ export default function SettingsScreen() {
       return;
     }
 
-    if (masterEnabled) {
-      const granted = await ensurePermission();
-      if (!granted) {
-        return;
-      }
+    // Adding a reminder is an explicit "I want this" — enable it (which also
+    // flips the master switch on) rather than inheriting the current state.
+    const granted = await ensurePermission();
+    if (!granted) {
+      return;
     }
 
-    await addReminder(hour, minute, masterEnabled);
+    await addReminder(hour, minute, true);
     await refreshAndReconcile();
   };
 
